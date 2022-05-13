@@ -1,5 +1,10 @@
 import {useState, useEffect} from 'react'
 import {FaSignInAlt} from 'react-icons/fa'
+import {useSelector, useDispatch} from 'react-redux'
+import { useNavigate } from 'react-router-dom'
+import {toast} from 'react-toastify'
+import {login, reset} from '../features/auth/authSlice'
+import Spinner from '../components/Spinner'
 
 
 function Login() {
@@ -10,6 +15,29 @@ function Login() {
 
   const {email, password} = formData
 
+  const navigate = useNavigate()  // 1:11
+  const dispatch = useDispatch()
+
+  const {user, isLoading, isError, isSuccess, message} = useSelector(
+    (state) => state.auth)
+
+  useEffect(()=> {
+      if(isError) {
+        toast.error(message)
+      }
+  
+      if(isSuccess || user){
+        console.log("isSuccess", isSuccess)
+        console.log("user", user)
+        console.log("pass")
+        navigate('/')
+      }
+  
+      dispatch(reset())
+  
+    }, [user, isError, isSuccess, message, navigate, dispatch])
+
+
   const onChange = (e) => {
     setFormData((prevState)=>({
       ...prevState,
@@ -19,6 +47,17 @@ function Login() {
 
   const onSubmit =(e) => {
     e.preventDefault()
+
+    const userData = {
+      email,
+      password
+    }
+    dispatch(login(userData))
+
+  }
+
+  if(isLoading) {
+    return<Spinner />
   }
 
   return <>
@@ -26,10 +65,10 @@ function Login() {
       <h1>
         <FaSignInAlt /> ログイン
       </h1>
-      <p>ログインしてゴール設定を開始</p>
+      <p>ログインして目標の設定を開始</p>
     </section>
     <section className="form">
-      <form>
+      <form onSubmit={onSubmit}>
         <div className="form-group">
           <input type='email' className='form-control' id='email' name='email' value={email}
           placeholder='メールアドレスを入力' onChange={onChange}
@@ -41,7 +80,7 @@ function Login() {
           />
         </div>
         <div className="form-group">
-        <button type='submit' className='btn btn-block'  onChange={onSubmit}>送信</button>
+        <button type='submit' className='btn btn-block'>送信</button>
         </div>
       </form>
     </section>
